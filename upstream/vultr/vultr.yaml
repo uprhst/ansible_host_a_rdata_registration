@@ -1,7 +1,7 @@
 ---
 #vultr.yaml
 
-apitoken: "KA4UYT2GKXUY5BJYJN33EO5POADZUIV3HP3Q"
+apitoken: "API_TOKEN_HERE"
 # This is inventory configuration
 # pretty simple, we setup the API TOKEN
 # above and then use the enpoint in the fields
