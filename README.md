@@ -21,17 +21,7 @@ If additional provider is installed, you can override the default with:
 ansible-playbook -i upstream_provider_inventory.yaml update_a_records.yaml -e source=do
 ```
 
-## How it works
-Providers consist of simple configuration file accompanied by a python script.
-
-Directory structure should be:
-```bash
-|-- upstream
-|   `-- vultr
-|       |-- vultr.py
-|       `-- vultr.yaml
-```
-
+## Module
 Module API usage, it is not the best, but it is slowly coming together:
 ```yaml
 - name: Create the server
@@ -47,6 +37,17 @@ The playbook (due to its integration with DNSimple) will request API email addre
 Usage:
 ```bash
 ansible-playbook create_server.yaml -e name=_new-servername
+```
+
+## How it works
+Providers consist of simple configuration file accompanied by a python script.
+
+Directory structure should be:
+```bash
+|-- upstream
+|   `-- vultr
+|       |-- vultr.py
+|       `-- vultr.yaml
 ```
 
 Where the directory name, configuration and python script all share the same name, in this case: `vultr`.
