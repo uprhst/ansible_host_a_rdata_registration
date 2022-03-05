@@ -20,6 +20,8 @@ options:
         required: true
 '''
 
+import yaml
+from jinja2 import Template
 from importlib.machinery import SourceFileLoader
 from ansible.plugins.inventory import BaseInventoryPlugin
 from ansible.errors import AnsibleError, AnsibleParserError
@@ -45,23 +47,43 @@ class InventoryModule(BaseInventoryPlugin):
         config = {}
         path = self.upstream_config_path
 
-        # Verify the file exists
+        # Since we want variable/template substitution
+        # we manually read the file
+        # parse the fields we have and then apply the subtitution
+        # with the use of jinja2 library
+        with open(path, 'r') as file:
+            data = file.read();
+
+        parsed_data = yaml.full_load(data)
+
         try:
-            config = self.loader.load_from_file(path, cache=False)
+            parsed_data = Template(data).render(parsed_data)
         except Exception as e:
-            raise AnsibleError(to_native(e))
+            raise AnsibleParserError('Failed parsing provider yaml configu file: {}'.format(e))
+
+        config = yaml.full_load(parsed_data)
+
+        
+        # To be revisited, I really like this one
+        # Verify the file exists
+        # try:
+        #     config = self.loader.load_from_file(path, cache=False)
+        # except Exception as e:
+        #     raise AnsibleError(to_native(e))
 
         if not config:
             raise AnsibleParserError("%s is empty" % (to_native(path)))
-        elif 'endpoint' not in config:
+        elif 'inventory' not in config:
+            raise AnsibleParserError("Inventory configuration not found: %s" % config.get('inventory', 'none found'))
+        elif 'endpoint' not in config['inventory']:
             # Where is my Endpoint?
-            raise AnsibleParserError("Endpoint location not found: %s" % config.get('endpoint', 'none found'))
-        elif 'options' not in config:
+            raise AnsibleParserError("Endpoint location not found: %s" % config['inventory'].get('endpoint', 'none found'))
+        elif 'options' not in config['inventory']:
             # I have no Options
-            raise AnsibleParserError("No options defined: %s" % config.get('options', 'none found'))
-        elif 'method' not in config['options']:
+            raise AnsibleParserError("No options defined: %s" % config['inventory'].get('options', 'none found'))
+        elif 'method' not in config['inventory']['options']:
             # I do not have METHOD assigned
-            raise AnsibleParserError("Endpoint access Method not defined: %s" % config.get('options').get('method', 'none found'))
+            raise AnsibleParserError("Endpoint access Method not defined: %s" % config['inventory'].get('options').get('method', 'none found'))
         elif not isinstance(config, Mapping):
             # configs are dictionaries
             raise AnsibleParserError('inventory source has invalid structure, it should be a dictionary, got: %s' % type(config))

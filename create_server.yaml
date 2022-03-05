@@ -1,0 +1,85 @@
+---
+- name: Create a new server with the selected provider
+  hosts: localhost
+  # Maybe we can replace these with ENV variables
+  vars_prompt:
+    - name: dns_email
+      prompt: Enter the DNS Account email address
+      private: no
+    - name: dns_api_token
+      prompt: Enter the DNS API Token
+    - name: root_domain
+      prompt: Enter the Domain name
+      private: no
+  tasks:
+    # Our custom provider plugin
+    # Takes a name for the server, that will be used as a hostname
+    # A command, in this case of type: create, which means we will
+    # contact the upstream provider and ask them to create a new server
+    # for us
+    # and finally an options JSON object, not particularly beautiful at
+    # this time, but it works as intended. API is still unfinished and is WIP
+    - name: Create the server
+      provider:
+        name: "{{ name }}"
+        command: create
+        options: "{\"plan\":\"vc2-1c-1gb\",\"region\":\"fra\",\"attach_private_network\":[\"62f298c4-8e88-4d7e-bb06-141d16c69eb7\"],\"snapshot_id\":\"3ff31378-a8bf-4f80-ab5b-659c42a8cc75\"}"
+      register: creation
+
+    # Mostly just for debugging purposes
+    - name: Create the server \Message 
+      debug:
+        msg: "{{ creation.msg }}"
+    - name: Create the server \Instace data
+      debug:
+        msg: "{{ creation.instance }}"
+
+    # Once the server creation is completed
+    # we go ahead and add an A record right away
+    - name: Get/Create A record
+      community.general.dnsimple:
+        account_email: "{{ dns_email }}"
+        account_api_token: "{{ dns_api_token }}"
+        domain: "{{ root_domain }}"
+        record: "{{ creation.instance.hostname }}"
+        value: "{{ creation.instance.main_ip }}"
+        type: A
+      register: dnsdata
+    - name: Get/Create A record \DNS Data
+      debug:
+        msg: "{{ dnsdata }}"
+      
+    # Now it is time to install some package
+    # Maybe instead of having this big piece
+    # of code, we could have multiple roles
+    # I will look into optimizing this
+    - name: Add host
+      add_host:
+        hostname: "{{ creation.instance.hostname }}"
+        ansible_host: "{{ creation.instance.main_ip }}"
+
+    # Now that we have access to the server
+    # we proceed with installing Puppet and later
+    # configure it
+    - name: Downloading Puppet
+      get_url:
+        url: https://yum.puppet.com/puppet7-release-el-7.noarch.rpm
+        dest: /root/puppet.rpm
+      delegate_to: "{{ creation.instance.hostname }}"
+
+    - name: Installing Puppet RPM Repo
+      command: "rpm -Uvh /root/puppet.rpm"
+      delegate_to: "{{ creation.instance.hostname }}"
+
+    - name: Installing Puppet
+      command: "yum install -y puppet --disablerepo=* --enablerepo=puppet7"
+      delegate_to: "{{ creation.instance.hostname }}"
+
+    - name: Get Puppet version
+      command: "/opt/puppetlabs/bin/puppet -V"
+      delegate_to: "{{ creation.instance.hostname }}"
+      register: out
+
+    - name: Debug
+      debug:
+        msg: "{{ out.stdout }}"

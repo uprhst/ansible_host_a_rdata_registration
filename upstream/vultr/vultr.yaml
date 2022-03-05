@@ -1,9 +1,30 @@
 ---
 #vultr.yaml
 
-endpoint: "https://api.vultr.com/v2/instances"
-options:
-  method: "GET"
-  headers:
-    - authorization: "Bearer UPSTREAM_API_TOKEN_HERE"
-    - content-type: "application/json"
+apitoken: "KA4UYT2GKXUY5BJYJN33EO5POADZUIV3HP3Q"
+# This is inventory configuration
+# pretty simple, we setup the API TOKEN
+# above and then use the enpoint in the fields
+# below
+inventory:
+  endpoint: "https://api.vultr.com/v2/instances"
+  options:
+    method: "GET"
+    headers:
+      - authorization: "Bearer {{ apitoken }}"
+      - content-type: "application/json"
+
+# Same as above, but this is the module
+# piece of configuration code
+# each direct child to `module` is a command
+# endpoint
+module:
+  create:
+    endpoint: "https://api.vultr.com/v2/instances"
+    options:
+      method: "POST"
+      headers:
+        - authorization: "Bearer {{ apitoken }}"
+        - content-type: "application/json"
+  get:
+    endpoint: "https://api.vultr.com/v2/instances"
