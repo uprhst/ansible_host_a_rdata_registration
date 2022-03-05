@@ -1,0 +1,6 @@
+---
+#upstream_provider_inventory.yaml
+
+plugin: provider
+path_to_providers: upstream
+source: 'vultr'

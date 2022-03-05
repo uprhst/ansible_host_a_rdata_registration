@@ -1,0 +1,9 @@
+---
+#vultr.yaml
+
+endpoint: "https://api.vultr.com/v2/instances"
+options:
+  method: "GET"
+  headers:
+    - authorization: "Bearer UPSTREAM_API_TOKEN_HERE"
+    - content-type: "application/json"

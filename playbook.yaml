@@ -1,0 +1,20 @@
+---
+- name: Playbook to interface with DNSimple API And create missing A records
+  hosts:
+    - all
+  connection: local
+  tasks:
+    # A record will only be created if it doesn't exist
+    - name: Get/Create A record
+      community.general.dnsimple:
+        account_email: USER_EMAIL_HERE
+        account_api_token: API_TOKEN_HERE
+        domain: DOMAIN_HERE
+        record: "{{ inventory_hostname }}"
+        value: "{{ ip4 }}" # this can also be "{{ ansible_host }}"
+        type: A
+      delegate_to: localhost
+      register: dnsdata
+    - name: DISPLAY THE HOST VARS
+      debug:
+        msg: "{{ inventory_hostname }} with public IPv4 {{ ip4 }} and dns data: {{ dnsdata }}"
