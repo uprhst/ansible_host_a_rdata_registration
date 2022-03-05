@@ -13,12 +13,12 @@ pip install -r requirements.txt
 
 Run with:
 ```bash
-ansible-playbook -i upstream_provider_inventory.yaml playbook.yaml
+ansible-playbook -i upstream_provider_inventory.yaml update_a_records.yaml
 ```
 
 If additional provider is installed, you can override the default with:
 ```bash
-ansible-playbook -i upstream_provider_inventory.yaml playbook.yaml -e source=do
+ansible-playbook -i upstream_provider_inventory.yaml update_a_records.yaml -e source=do
 ```
 
 ## How it works

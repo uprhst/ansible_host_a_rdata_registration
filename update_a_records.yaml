@@ -4,6 +4,7 @@
     - all
   connection: local
   tasks:
+  
     # A record will only be created if it doesn't exist
     - name: Get/Create A record
       community.general.dnsimple:
@@ -15,6 +16,7 @@
         type: A
       delegate_to: localhost
       register: dnsdata
-    - name: DISPLAY THE HOST VARS
+
+    - name: Display hosts data
       debug:
         msg: "{{ inventory_hostname }} with public IPv4 {{ ip4 }} and dns data: {{ dnsdata }}"
